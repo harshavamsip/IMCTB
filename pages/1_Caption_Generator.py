@@ -54,8 +54,6 @@ def predict_caption(image_path):
     attention_plot = model.run_and_show_attention(image)
     return pred, attention_plot
 
-
-# @st.experimental_singleton(show_spinner="Building model...")
 @st.cache_resource(show_spinner="Building model...")
 def build_model():
     # image encoder
@@ -114,15 +112,7 @@ with st.sidebar:
 
 model = build_model()
 
-samples = {
-    "Sample One": ("./assets/sample_one.jpg", "https://flickr.com/photos/ee_shawn/31567626557/"),
-    "Sample Two": ("./assets/sample_two.jpg", "https://flickr.com/photos/ee_shawn/37590506210/"),
-    "Sample Three": ("./assets/sample_three.jpg", "https://flickr.com/photos/ee_shawn/20422881640/")
-}
-image_options = ("", "Sample One", "Sample Two", "Sample Three")
-
 intro_placeholder = st.empty()
-
 results_placeholder = st.empty()
 
 tab1, tab2 = st.tabs(["Upload Image", "Load from URL"])
@@ -140,11 +130,10 @@ with tab2:
             )
         submitted = st.form_submit_button("Get Image")
     if submitted:
-        st.session_state.select_sample = image_options[0] # reset selection
-        url_regex_match = re.match(r"((?:https?:\/\/)?.*\.(?:png|jpg|jpeg))", image_url)
+        url_regex_match = re.match(r"((?:https?:\\/\\/)?.*\\.(?:png|jpg|jpeg))", image_url)
         if url_regex_match is not None:
             try:
-                get_image_from_url(image_url) # try to retrieve image
+                get_image_from_url(image_url)
             except:
                 st.error("Sorry, unable to retrieve the image from the provided URL. Please try a different URL or upload an image instead!")
         else:
@@ -153,51 +142,31 @@ with tab2:
 st.markdown("---")
 
 if uploaded_file:
-    st.session_state.select_sample = image_options[0] # reset selection
     st.session_state.disabled = True
 else:
     st.session_state.disabled = False
 
-image_option = st.selectbox(
-    "Try the caption generator with a sample image.",
-    image_options,
-    help="Clear uploaded file to use sample image.",
-    disabled=st.session_state.disabled,
-    key="select_sample"
-)
-
-# loading priority = URL, uploaded_file, sample
-if submitted and url_regex_match is not None:
-    image = image_url
-    image_link = image_url
-    image_path = get_image_from_url(image_url)
-    caption, attention_plot = predict_caption(image_path)
-elif uploaded_file:
-    image = uploaded_file
-    image_link = None
-    caption, attention_plot = predict_caption(image)
-elif image_option != image_options[0]:
-    image_path = samples[image_option][0]
-    image = image_path
-    image_link = "Image Source: " + samples[image_option][1]
-    caption, attention_plot = predict_caption(image)
-else:
-    with intro_placeholder.container():
-        st.markdown(
-            """
-            ##### Try out the model with one of the sample images below, or upload your own to see what caption is generated!
-            """
-        )
-
 try:
+    if uploaded_file:
+        caption, attention_plot = predict_caption(uploaded_file)
+    elif submitted and url_regex_match is not None:
+        image_path = get_image_from_url(image_url)
+        caption, attention_plot = predict_caption(image_path)
+    else:
+        with intro_placeholder.container():
+            st.markdown(
+                """
+                ##### Upload an image or provide an image URL to generate a caption!
+                """
+            )
+    
     if caption:
         with results_placeholder.container():
             st.markdown("### Predicted Caption")
             st.success(caption)
-            st.image(image, use_column_width=True, caption=image_link)
+            st.image(uploaded_file if uploaded_file else image_url, use_column_width=True)
             st.markdown("#### Attention Map")
             st.pyplot(attention_plot)
             st.markdown("---")
 except:
     pass
-
