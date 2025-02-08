@@ -55,7 +55,8 @@ def predict_caption(image_path):
     return pred, attention_plot
 
 
-@st.experimental_singleton(show_spinner="Building model...")
+# @st.experimental_singleton(show_spinner="Building model...")
+@st.cache_resource(show_spinner="Building model...")
 def build_model():
     # image encoder
     feature_extractor = tf.keras.applications.MobileNetV3Small(
