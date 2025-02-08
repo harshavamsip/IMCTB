@@ -1,0 +1,2 @@
+IMC/models/attention_weights/.data-* filter=lfs diff=lfs merge=lfs -text
+IMC/variables/variables.data-* filter=lfs diff=lfs merge=lfs -text
