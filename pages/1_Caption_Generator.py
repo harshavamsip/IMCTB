@@ -201,37 +201,3 @@ try:
 except:
     pass
 
-# if not uploaded_file and image_option == image_options[0]:
-#     with intro_placeholder.container():
-#         st.markdown(
-#             """
-#             ##### Try out the model with one of the sample images below, or upload your own to see what caption is generated!
-#             """
-#         )
-# else:
-#     if uploaded_file:
-#         image = uploaded_file
-#         image_link = None
-#         caption, attention_plot = predict_caption(image)
-#     else:
-#         image_path = samples[image_option][0]
-#         image = image_path
-#         image_link = "Image Source: " + samples[image_option][1]
-#         caption, attention_plot = predict_caption(image)
-    
-#     with results_placeholder.container():
-#         st.markdown("### Predicted Caption")
-#         st.success(caption)
-#         st.image(image, use_column_width=True, caption=image_link)
-#         st.markdown("#### Attention Map")
-#         st.pyplot(attention_plot)
-#         st.markdown("---")
-
-# with st.expander("Project Limitations"):
-#     st.markdown(
-#         """
-#         As with all projects, there are limitations to the current deployed model. While relatively robust for simpler use cases like my project, the Flickr30k dataset only includes around 31,000 image samples. The model would be constrained by the types of images and captions present in the dataset, as you may observe with the predictions.
-        
-#         To fully maximise the potential of the model, larger datasets like COCO or Conceptual Captions could be considered.
-#         """
-#     )
