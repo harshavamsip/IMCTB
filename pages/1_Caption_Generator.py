@@ -54,7 +54,8 @@ def predict_caption(image_path):
     attention_plot = model.run_and_show_attention(image)
     return pred, attention_plot
 
-@st.cache_resource(show_spinner="Building model...")
+
+@st.experimental_singleton(show_spinner="Building model...")
 def build_model():
     # image encoder
     feature_extractor = tf.keras.applications.MobileNetV3Small(
@@ -130,10 +131,10 @@ with tab2:
             )
         submitted = st.form_submit_button("Get Image")
     if submitted:
-        url_regex_match = re.match(r"((?:https?:\\/\\/)?.*\\.(?:png|jpg|jpeg))", image_url)
+        url_regex_match = re.match(r"((?:https?:\/\/)?.*\.(?:png|jpg|jpeg))", image_url)
         if url_regex_match is not None:
             try:
-                get_image_from_url(image_url)
+                get_image_from_url(image_url) # try to retrieve image
             except:
                 st.error("Sorry, unable to retrieve the image from the provided URL. Please try a different URL or upload an image instead!")
         else:
@@ -146,27 +147,41 @@ if uploaded_file:
 else:
     st.session_state.disabled = False
 
+# loading priority = URL, uploaded_file
+if submitted and url_regex_match is not None:
+    image = image_url
+    image_link = image_url
+    image_path = get_image_from_url(image_url)
+    caption, attention_plot = predict_caption(image_path)
+elif uploaded_file:
+    image = uploaded_file
+    image_link = None
+    caption, attention_plot = predict_caption(image)
+else:
+    with intro_placeholder.container():
+        st.markdown(
+            """
+            ##### Upload an image or provide a URL to generate a caption!
+            """
+        )
+
 try:
-    if uploaded_file:
-        caption, attention_plot = predict_caption(uploaded_file)
-    elif submitted and url_regex_match is not None:
-        image_path = get_image_from_url(image_url)
-        caption, attention_plot = predict_caption(image_path)
-    else:
-        with intro_placeholder.container():
-            st.markdown(
-                """
-                ##### Upload an image or provide an image URL to generate a caption!
-                """
-            )
-    
     if caption:
         with results_placeholder.container():
             st.markdown("### Predicted Caption")
             st.success(caption)
-            st.image(uploaded_file if uploaded_file else image_url, use_column_width=True)
+            st.image(image, use_column_width=True, caption=image_link)
             st.markdown("#### Attention Map")
             st.pyplot(attention_plot)
             st.markdown("---")
 except:
     pass
+
+with st.expander("Project Limitations"):
+    st.markdown(
+        """
+        As with all projects, there are limitations to the current deployed model. While relatively robust for simpler use cases like my project, the Flickr30k dataset only includes around 31,000 image samples. The model would be constrained by the types of images and captions present in the dataset, as you may observe with the predictions.
+        
+        To fully maximise the potential of the model, larger datasets like COCO or Conceptual Captions could be considered.
+        """
+    )
